@@ -16,9 +16,40 @@ class Renderer:
         self.images = images
         self.font = pygame.font.Font(None, 28)
         self.big_font = pygame.font.Font(None, 48)
+        self._menu_bg: pygame.Surface | None = None
+
+    def _get_menu_background(self) -> pygame.Surface:
+        """Menü arka planı: assets/images/menu_bg.png görseli (yoksa koyu gradient yedek)."""
+        if self._menu_bg is not None:
+            return self._menu_bg
+        w, h = settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT
+        path = settings.IMAGE_DIR / "menu_bg.png"
+        try:
+            if path.exists():
+                img = pygame.image.load(str(path)).convert()
+                self._menu_bg = pygame.transform.smoothscale(img, (w, h))
+                return self._menu_bg
+        except Exception:
+            pass
+        self._menu_bg = pygame.Surface((w, h))
+        for y in range(h):
+            t = y / h
+            r = int(5 + 20 * (1 - t))
+            g = int(5 + 15 * (1 - t))
+            b = int(25 + 35 * (1 - t))
+            pygame.draw.line(self._menu_bg, (r, g, b), (0, y), (w, y))
+        dot_color = (255, 204, 0, 28)
+        dot_surf = pygame.Surface((8, 8), pygame.SRCALPHA)
+        pygame.draw.circle(dot_surf, dot_color, (4, 4), 3)
+        step = 32
+        for y in range(0, h, step):
+            for x in range(0, w, step):
+                if (x // step + y // step) % 2 == 0:
+                    self._menu_bg.blit(dot_surf, (x, y))
+        return self._menu_bg
 
     def draw_menu(self, selected: str) -> None:
-        self.screen.fill(settings.BLACK)
+        self.screen.blit(self._get_menu_background(), (0, 0))
         title = self.big_font.render("Pac-Man AI", True, settings.YELLOW)
         self.screen.blit(title, title.get_rect(center=(settings.SCREEN_WIDTH // 2, 120)))
 

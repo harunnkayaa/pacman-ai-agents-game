@@ -7,7 +7,7 @@ import pygame
 from game_ayarlar import (
     TILE_SIZE,  HUD_HEIGHT,  COLOR_BACKGROUND,  COLOR_WALL,  COLOR_WALL_GLOW,  COLOR_PELLET,
     COLOR_POWER, COLOR_GATE,  COLOR_TEXT,  COLOR_HUD,  COLOR_SHADOW,  COLOR_GHOST_FRIGHT,
-    COLOR_GHOST_FRIGHT_BLINK, FPS,  GHOST_IMAGES_DIR,
+    COLOR_GHOST_FRIGHT_BLINK, FPS,  GHOST_IMAGES_DIR,  MENU_BG_IMAGE,
 )
 from entities import GameMap, Player, Ghost
 from oyun_utils import manhattan_mesafe
@@ -15,6 +15,10 @@ from oyun_utils import manhattan_mesafe
 # Tek ve çift mod skorlarını tutmak için (performans karşılaştırma)
 last_human_single_result: dict | None = None
 last_ai_single_result: dict | None = None
+
+# Menü arka plan görseli önbelleği (boyut değişince yeniden ölçeklenir)
+_menu_bg_surface: pygame.Surface | None = None
+_menu_bg_size: Tuple[int, int] = (0, 0)
 
 
 def peas_text() -> str:
@@ -375,8 +379,28 @@ def mod_menu_calistir(
                     pygame.quit()
                     sys.exit(0)
 
-        # menü arkaplanını boyuyoruz
-        surface.fill(COLOR_BACKGROUND)
+        # menü arkaplanı: görsel varsa onu çiz, yoksa düz renk
+        w, h = surface.get_size()
+        global _menu_bg_surface, _menu_bg_size
+        if MENU_BG_IMAGE.exists() and (_menu_bg_surface is None or _menu_bg_size != (w, h)):
+            try:
+                img = pygame.image.load(str(MENU_BG_IMAGE)).convert()
+                _menu_bg_surface = pygame.transform.smoothscale(img, (w, h))
+                _menu_bg_size = (w, h)
+            except Exception:
+                _menu_bg_surface = None
+                _menu_bg_size = (0, 0)
+        if _menu_bg_surface is not None:
+            surface.blit(_menu_bg_surface, (0, 0))
+        else:
+            surface.fill(COLOR_BACKGROUND)
+        # yazı bölgesinde çok hafif gölge (arka plan iyice görünsün)
+        pw, ph = game_map.pixel_width, game_map.pixel_height
+        panel_w, panel_h = int(pw * 0.65), int(ph * 0.36)
+        panel_x, panel_y = (pw - panel_w) // 2, (ph - panel_h) // 2
+        panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+        panel.fill((2, 2, 4, 28))
+        surface.blit(panel, (panel_x, panel_y))
         title = font.render("Pacman", True, COLOR_TEXT)
 
         # menü seçenekleri yazıları

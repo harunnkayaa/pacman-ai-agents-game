@@ -100,3 +100,4 @@ GHOST_RELEASE_DELAYS = [0.0, 2.0, 4.0, 6.0]
 PROJE_KOK_DIZIN = Path(__file__).parent
 GHOST_IMAGES_DIR = PROJE_KOK_DIZIN / "assets" / "ghost_images"
 SOUNDS_DIR = PROJE_KOK_DIZIN / "assets" / "sounds"
+MENU_BG_IMAGE = PROJE_KOK_DIZIN / "assets" / "images" / "menu_bg.png"
